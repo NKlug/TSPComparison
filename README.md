@@ -7,5 +7,5 @@ The third approach utilizes a neural net, to be precise a kohonen feature map, t
 
 It is obvious that the optimized brute force algorithm is superior to the casual brute force one,
 but the really interesting part is how it competes against the neural net. I'm writing this when I haven't
-done testing yet, but my expectation is that for only a few cities the brute force approach is faster, when
+done testing yet, but my expectation is that for only a few cities the brute force approach is faster, whereas
 for a larger number of cities the neural net will be faster.
