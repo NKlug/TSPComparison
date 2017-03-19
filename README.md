@@ -1,5 +1,5 @@
 # TSPComparison
-A comparison of different Solutions to the "Travelling Salesman Problem".
+A comparison of different solutions to the "Travelling Salesman Problem".
 
 The first implementation is just brute force, trying out every possible permutation and selecting the shortest route,
 meanwhile the second one uses a slightly optimized algorithm, but is still brute force.
