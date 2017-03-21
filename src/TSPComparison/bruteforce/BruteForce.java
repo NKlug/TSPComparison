@@ -25,16 +25,26 @@ public class BruteForce {
         this.dim_out = dim_out;
         currentOutputLength = Double.MAX_VALUE;
 
-        optimal = new int[dim_out];
-        currentOutput = new int[dim_out];
         adjacentMatrix = new double[dim_out][dim_out];
 
+        reInitArrays();
         initializeOutput();
         calculateAdjacentMatrix();
     }
 
-    public void start() {
+    public void reInitArrays() {
+        optimal = new int[dim_out];
+        currentOutput = new int[dim_out];
+        currentOutputLength = Double.MAX_VALUE;
+    }
+
+    public void startCasual() {
         permutation(0);
+        printOutput();
+    }
+
+    public void startOptimized() {
+        permutationOptimized(0);
         printOutput();
     }
 
@@ -55,13 +65,13 @@ public class BruteForce {
     public double distance(int[] permutation) {
         int length = 0;
         for (int i = 0; i < dim_out; i++) {
-            length += adjacentMatrix[permutation[i]][permutation[(i+1) % dim_out]];
+            length += adjacentMatrix[permutation[i]][permutation[(i + 1) % dim_out]];
         }
         return length;
     }
 
     public void isOptimal(int[] permutation) {
-        if(distance(permutation) < currentOutputLength) {
+        if (distance(permutation) < currentOutputLength) {
             for (int i = 0; i < dim_out; i++) {
                 optimal[i] = permutation[i];
             }
@@ -71,7 +81,7 @@ public class BruteForce {
 
     public int getFirstEmptyPosition(int[] permutation, int n) {
         for (int i = n; i < dim_out; i++) {
-            if(permutation[i] == -1) {
+            if (permutation[i] == -1) {
                 return i;
             }
         }
@@ -93,7 +103,7 @@ public class BruteForce {
         double distance = 0;
         double minDistance = findMinDistance();
         for (int i = 0; i < dim_out; i++) {
-            if (currentOutput[i] == -1 || currentOutput[(i + 1) % dim_out] ==  -1)
+            if (currentOutput[i] == -1 || currentOutput[(i + 1) % dim_out] == -1)
                 distance += minDistance;
             else
                 distance += adjacentMatrix[currentOutput[i]][currentOutput[(i + 1) % dim_out]];
@@ -109,25 +119,25 @@ public class BruteForce {
             for (int i = 0; i < dim_out - level; i++) {
                 currentPosition = getFirstEmptyPosition(currentOutput, ++currentPosition);
                 currentOutput[currentPosition] = level;
-                permutation(level+1);
+                permutation(level + 1);
                 currentOutput[currentPosition] = -1;
             }
         }
     }
 
     public void permutationOptimized(int level) {
-        int currentPosition = getFirstEmptyPosition(currentOutput, 0);
+        int currentPosition = -1;
         if (level == dim_out) {
             isOptimal(currentOutput);
-        }
-        for (int i = 0; i < dim_out-level; i++) {
-            if (minDistance() < currentOutputLength) {
-                currentOutput[currentPosition] = level;
-                permutation(++level);
-                currentOutput[currentPosition] = -1;
-                currentPosition = getFirstEmptyPosition(currentOutput, ++currentPosition);
+        } else {
+            for (int i = 0; i < dim_out - level; i++) {
+                if (minDistance() < currentOutputLength) {
+                    currentPosition = getFirstEmptyPosition(currentOutput, ++currentPosition);
+                    currentOutput[currentPosition] = level;
+                    permutation(level + 1);
+                    currentOutput[currentPosition] = -1;
+                }
             }
-
         }
     }
 

@@ -18,7 +18,7 @@ public class SimpleOutputFrame {
         frame.setSize(new Dimension(1000,1000));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        TSPComparison.neuralnet.DrawPanel panel = new TSPComparison.neuralnet.DrawPanel(net.getOutput(), net.getWeights(), net.getDim_in(), net.getDim_out(), net.getInput());
+        TSPComparison.neuralnet.DrawPanel panel = new TSPComparison.neuralnet.DrawPanel(net.getWeights(), net.getDim_out(), net.getInput());
 
         net.setPanel(panel);
 

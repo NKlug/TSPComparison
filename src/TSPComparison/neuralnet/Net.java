@@ -3,16 +3,21 @@ package TSPComparison.neuralnet;
 import TSPComparison.VectorCalc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by Nick on 14.03.2017.
  */
 public class Net {
 
-    private final int EPOCHS = 5000;
-    private double radius = 1;
-    private double epsilon = 0.6;
-    private int time = 0;
+    public final double RADIUS = 1;
+    public final double EPSILON = 0.7;
+    private int EPOCHS;
+    private double radius;
+    private double epsilon;
+    private int time;
 
     private int winner;
     private int dim_in;
@@ -28,14 +33,20 @@ public class Net {
     public Net(int dim_in, ArrayList<double[]> inputVectors, int dim_out) {
         this.dim_in = dim_in;
         this.dim_out = dim_out;
+        this.EPOCHS = 50 * dim_out;
 
-        output = new int[dim_out];
         weights = new double[dim_out][dim_in];
 
         this.inputVectors = inputVectors;
+
+        initializeOutput();
     }
 
+
     private void initializeWeights() {
+        radius = RADIUS;
+        epsilon = EPSILON;
+        time = 0;
         for (int i = 0; i < dim_out; i++) {
             for (int j = 0; j < dim_in; j++) {
                 weights[i][j] = Math.random() - 0.5;
@@ -43,23 +54,29 @@ public class Net {
         }
     }
 
-    public void start() {
-        do {
-            System.out.println("Started Calculation.");
-            time = 0;
-            initializeWeights();
-            for (int i = 0; i < EPOCHS; i++) {
-                for (int j = 0; j < dim_out; j++) {
-                    selectWinner(inputVectors.get(j));
-                    modifyWeights(inputVectors.get(j));
-                    refreshPanel();
-                }
-                time++;
-            }
-            calculateOrder();
-        } while (!validateOutput());
+    private void initializeOutput() {
+        output = new int[dim_out];
+        for (int i = 0; i < dim_out; i++) {
+            output[i] = -1;
+        }
+    }
 
+    public void start() {
+        initializeWeights();
+        calculation();
+        getRoute();
         printOutput();
+    }
+
+    private void calculation() {
+        for (int i = 0; i < EPOCHS; i++) {
+            for (int j = 0; j < inputVectors.size(); j++) {
+                selectWinner(inputVectors.get(j));
+                modifyWeights(inputVectors.get(j));
+                refreshPanel();
+            }
+            time++;
+        }
     }
 
     private void selectWinner(double[] input) {
@@ -106,24 +123,75 @@ public class Net {
         initializeWeights();
     }
 
-    private void calculateOrder() {
-        for (int i = 0; i < dim_out; i++) {
+
+    public void calculateOrder() {
+        for (int i = 0; i < inputVectors.size(); i++) {
             selectWinner(inputVectors.get(i));
+            System.out.println("Output for " + i + ": " + winner);
             output[winner] = i;
         }
     }
 
-    private boolean validateOutput() {
+    public LinkedList<Integer> listFromOutput() {
+        LinkedList<Integer> list = new LinkedList<>();
         for (int i = 0; i < dim_out; i++) {
-            for (int j = 0; j < dim_out; j++) {
-                if (i != j && output[i] == output[j]) {
-                    return false;
-                }
+            if (output[i] != -1) {
+                list.add(output[i]);
             }
         }
-        System.out.println("Output validated.");
-        return true;
+        return list;
     }
+
+    private void getRoute() {
+
+        calculateOrder();
+        LinkedList<Integer> list = listFromOutput();
+
+        printOutput();
+
+
+        System.out.println("-1: " + list.toString());
+
+        if (list.size() < dim_out) {
+            this.dim_out = list.size();
+            initializeWeights();
+            initializeOutput();
+            calculation();
+            calculateOrder();
+            LinkedList<Integer> templist = listFromOutput();
+
+            int k = 0, size, currentIndex;
+            while ((size = templist.size()) < inputVectors.size()) {
+                while (templist.contains(k)) {
+                    k++;
+                }
+                System.out.println("entered loop");
+                selectWinner(inputVectors.get(k));
+                currentIndex = templist.indexOf(output[winner]);
+
+                if (VectorCalc.magnitude(VectorCalc.subtract(inputVectors.get(templist.get((size + currentIndex - 1) % size)), inputVectors.get(k), dim_in), dim_in) <
+                        VectorCalc.magnitude(VectorCalc.subtract(inputVectors.get(templist.get((size + currentIndex + 1) % size)), inputVectors.get(k), dim_in), dim_in)) {
+
+                    templist.add(currentIndex, k);
+
+                } else {
+                    templist.add((size + currentIndex + 1) % size, k);
+                }
+
+            }
+
+
+            dim_out = inputVectors.size();
+            initializeOutput();
+            System.out.println("Output length: " + output.length);
+            for (int i = 0; i < dim_out; i++) {
+                output[i] = templist.get(i);
+            }
+        }
+
+
+    }
+    
 
     public void printOutput() {
         System.out.print("\nCalculated Order: ");
@@ -161,10 +229,15 @@ public class Net {
         return this.inputVectors;
     }
 
-    public void setPanelWinner() {
-        panel.setWinner(this.winner);
-    }
 
+    public void printWeights() {
+        for (int i = 0; i < dim_out; i++) {
+            for (int j = 0; j < dim_in; j++) {
+                System.out.print(weights[i][j] + "\t");
+            }
+            System.out.println();
+        }
+    }
 
 
 }
