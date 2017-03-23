@@ -12,8 +12,8 @@ import java.util.LinkedList;
 public class Comparison {
 
     public final int MIN_CITIES = 8;
-    public final int MAX_CITIES = 15;
-    public final int REPETITIONS = 10;
+    public final int MAX_CITIES = 12;
+    public final int REPETITIONS = 100;
 
     private final int DIM_IN = 2;
 
@@ -59,13 +59,27 @@ public class Comparison {
 //            bruteForce.startOptimized();
 //            results[i][2] = System.nanoTime() - time;
 
-                System.out.println("Net:\t\t" + (double) (res.getNetTime() / 1000) + " µs\t" + res.getNetLength() + "\t" + net.validateOutput());
+                results.add(res);
+
+                System.out.println("Net:\t\t" + (double) (res.getNetTime() / 1000) + " µs\t\t" + res.getNetLength() + "\t");
                 System.out.println("BruteForce:\t" + (double) (res.getBruteForceTime() / 1000) + " µs\t" + res.getBruteForceLength());
                 System.out.println();
             }
             System.out.println("\n\n");
-
         }
+
+        int errors = 0;
+        double netLength = 0;
+        double bruteForceLength = 0;
+         for (Result result: results) {
+            if ((int) (result.getNetLength()*100000) != (int) (result.getBruteForceLength()*100000))
+                errors++;
+            netLength += result.getNetLength();
+            bruteForceLength += result.getBruteForceLength();
+         }
+
+         System.out.println("Error rate: " + (100*errors)/results.size() + " % \t(absolute: " + errors + "/" + results.size() + ")");
+         System.out.println("Net length on average " + ((netLength/bruteForceLength)-1)*100 + " % longer than actual Length");
 
 
     }
