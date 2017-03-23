@@ -38,17 +38,18 @@ public class DrawPanel extends JPanel {
         g2.setColor(Color.red);
         for (int i = 0; i < dim_out; i++) {
             g2.drawString( i + "",centerX + (int) (weights[i][0] * factor), centerY - (int) (weights[i][1] * factor));
-
+            g2.drawLine(centerX + (int) (weights[i][0] * factor), centerY - (int) (weights[i][1] * factor), centerX + (int) (weights[(dim_out + i + 1) % dim_out][0] * factor), centerY - (int) (weights[(dim_out + i + 1) % dim_out][1] * factor));
         }
 
         g2.setColor(Color.blue);
-        for (int i = 0; i < dim_out; i++) {
+        for (int i = 0; i < input.size(); i++) {
             g2.drawString( i + "",centerX + (int) (input.get(i)[0] * factor), centerY - (int) (input.get(i)[1] * factor));
 
         }
     }
 
-    public void setWeights(double[][] weights) {
+    public void setWeights(double[][] weights, int dim_out) {
+        this.dim_out = dim_out;
         this.weights = weights;
         this.repaint();
     }

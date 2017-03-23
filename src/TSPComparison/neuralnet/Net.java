@@ -14,7 +14,8 @@ public class Net {
 
     public final double RADIUS = 1;
     public final double EPSILON = 0.7;
-    private int EPOCHS;
+
+    private int epochs;
     private double radius;
     private double epsilon;
     private int time;
@@ -27,13 +28,15 @@ public class Net {
 
     private int output[];
     private double weights[][];
+    private double[][] adjacentMatrix;
 
     private TSPComparison.neuralnet.DrawPanel panel;
 
-    public Net(int dim_in, ArrayList<double[]> inputVectors, int dim_out) {
+    public Net(int dim_in, ArrayList<double[]> inputVectors, int dim_out, double[][] adjacentMatrix) {
         this.dim_in = dim_in;
         this.dim_out = dim_out;
-        this.EPOCHS = 50 * dim_out;
+        this.epochs = 5 * dim_out;
+        this.adjacentMatrix = adjacentMatrix;
 
         weights = new double[dim_out][dim_in];
 
@@ -65,15 +68,20 @@ public class Net {
         initializeWeights();
         calculation();
         getRoute();
-        printOutput();
     }
 
     private void calculation() {
-        for (int i = 0; i < EPOCHS; i++) {
+        for (int i = 0; i < epochs; i++) {
             for (int j = 0; j < inputVectors.size(); j++) {
                 selectWinner(inputVectors.get(j));
                 modifyWeights(inputVectors.get(j));
-                refreshPanel();
+                if (panel != null)
+                    refreshPanel();
+                try {
+                    Thread.sleep(0);
+                } catch (InterruptedException e) {
+
+                }
             }
             time++;
         }
@@ -108,11 +116,11 @@ public class Net {
     }
 
     private double sigma() {
-        return radius - (0.95 / EPOCHS) * time;
+        return radius - (0.95 / epochs) * time;
     }
 
     private double n() {
-        return epsilon - (0.55 / EPOCHS) * time;
+        return epsilon - (0.55 / epochs) * time;
     }
 
     public void addInputVector(double[] vector) {
@@ -123,11 +131,10 @@ public class Net {
         initializeWeights();
     }
 
-
     public void calculateOrder() {
         for (int i = 0; i < inputVectors.size(); i++) {
             selectWinner(inputVectors.get(i));
-            System.out.println("Output for " + i + ": " + winner);
+//            System.out.println("Output for " + i + ": " + winner);
             output[winner] = i;
         }
     }
@@ -142,17 +149,46 @@ public class Net {
         return list;
     }
 
+
     private void getRoute() {
 
         calculateOrder();
+
         LinkedList<Integer> list = listFromOutput();
 
-        printOutput();
+        int k = 0, size, currentIndex;
+        while ((size = list.size()) < inputVectors.size()) {
+            while (list.contains(k)) {
+                k++;
+            }
+            selectWinner(inputVectors.get(k));
+            currentIndex = list.indexOf(output[winner]);
+
+            // Check where to add the missing city
+            list.add(currentIndex, k);
+            int[] temp = list.stream().mapToInt(i -> i).toArray();
+            double length = VectorCalc.distance(temp, adjacentMatrix, list.size());
+            list.remove((Integer) k);
+            list.add((size + currentIndex + 1) % size, k);
+            temp = list.stream().mapToInt(i -> i).toArray();
+
+            if (length < VectorCalc.distance(temp, adjacentMatrix, list.size())) {
+                list.remove((Integer) k);
+                list.add(currentIndex, k);
+            }
+        }
+
+        initializeOutput();
+        for (int i = 0; i < dim_out; i++) {
+            output[i] = list.get(i);
+        }
 
 
-        System.out.println("-1: " + list.toString());
+
+/*        LinkedList<Integer> list = listFromOutput();
 
         if (list.size() < dim_out) {
+            System.out.println("Size of List: " + list.size());
             this.dim_out = list.size();
             initializeWeights();
             initializeOutput();
@@ -162,16 +198,15 @@ public class Net {
 
             int k = 0, size, currentIndex;
             while ((size = templist.size()) < inputVectors.size()) {
+                System.out.println("Entered loop " + templist.size());
                 while (templist.contains(k)) {
                     k++;
                 }
-                System.out.println("entered loop");
                 selectWinner(inputVectors.get(k));
                 currentIndex = templist.indexOf(output[winner]);
 
                 if (VectorCalc.magnitude(VectorCalc.subtract(inputVectors.get(templist.get((size + currentIndex - 1) % size)), inputVectors.get(k), dim_in), dim_in) <
                         VectorCalc.magnitude(VectorCalc.subtract(inputVectors.get(templist.get((size + currentIndex + 1) % size)), inputVectors.get(k), dim_in), dim_in)) {
-
                     templist.add(currentIndex, k);
 
                 } else {
@@ -183,34 +218,39 @@ public class Net {
 
             dim_out = inputVectors.size();
             initializeOutput();
-            System.out.println("Output length: " + output.length);
             for (int i = 0; i < dim_out; i++) {
                 output[i] = templist.get(i);
             }
-        }
-
+        }*/
 
     }
-    
+
+    public boolean validateOutput() {
+        for (int i = 0; i < dim_out; i++) {
+            for (int j = 0; j < dim_out; j++) {
+                if (i != j && output[i] == output[j]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
 
     public void printOutput() {
-        System.out.print("\nCalculated Order: ");
+        System.out.print("\nSOM calculated order: ");
         for (int i = 0; i < dim_out; i++) {
             System.out.print(output[i] + "  ");
         }
-        System.out.println("\n");
+        System.out.println("Total Length: " + getLength());
     }
 
-    public int[] getOutput() {
-        return this.output;
+    public double getLength() {
+        return VectorCalc.distance(output, adjacentMatrix, dim_out);
     }
 
     public double[][] getWeights() {
         return this.weights;
-    }
-
-    public int getDim_in() {
-        return this.dim_in;
     }
 
     public int getDim_out() {
@@ -218,7 +258,7 @@ public class Net {
     }
 
     public void refreshPanel() {
-        panel.setWeights(this.weights);
+        panel.setWeights(this.weights, this.dim_out);
     }
 
     public void setPanel(TSPComparison.neuralnet.DrawPanel panel) {
@@ -230,14 +270,14 @@ public class Net {
     }
 
 
-    public void printWeights() {
+/*    public void printWeights() {
         for (int i = 0; i < dim_out; i++) {
             for (int j = 0; j < dim_in; j++) {
                 System.out.print(weights[i][j] + "\t");
             }
             System.out.println();
         }
-    }
+    }*/
 
 
 }

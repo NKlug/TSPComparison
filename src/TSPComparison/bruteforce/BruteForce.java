@@ -19,17 +19,17 @@ public class BruteForce {
     private double currentOutputLength;
     private double[][] adjacentMatrix;
 
-    public BruteForce(int dim_in, ArrayList<double[]> inputVectors, int dim_out) {
+    public BruteForce(int dim_in, ArrayList<double[]> inputVectors, int dim_out, double[][] adjacentMatrix) {
         this.inputVectors = inputVectors;
         this.dim_in = dim_in;
         this.dim_out = dim_out;
         currentOutputLength = Double.MAX_VALUE;
+        this.adjacentMatrix = adjacentMatrix;
 
         adjacentMatrix = new double[dim_out][dim_out];
 
         reInitArrays();
         initializeOutput();
-        calculateAdjacentMatrix();
     }
 
     public void reInitArrays() {
@@ -40,20 +40,12 @@ public class BruteForce {
 
     public void startCasual() {
         permutation(0);
-        printOutput();
+//        printOutput();
     }
 
     public void startOptimized() {
         permutationOptimized(0);
         printOutput();
-    }
-
-    private void calculateAdjacentMatrix() {
-        for (int i = 0; i < dim_out; i++) {
-            for (int j = 0; j < dim_out; j++) {
-                adjacentMatrix[i][j] = VectorCalc.magnitude(VectorCalc.subtract(inputVectors.get(i), inputVectors.get(j), dim_in), dim_in);
-            }
-        }
     }
 
     private void initializeOutput() {
@@ -62,20 +54,12 @@ public class BruteForce {
         }
     }
 
-    public double distance(int[] permutation) {
-        int length = 0;
-        for (int i = 0; i < dim_out; i++) {
-            length += adjacentMatrix[permutation[i]][permutation[(i + 1) % dim_out]];
-        }
-        return length;
-    }
-
     public void isOptimal(int[] permutation) {
-        if (distance(permutation) < currentOutputLength) {
+        if (VectorCalc.distance(permutation, adjacentMatrix, dim_out) < currentOutputLength) {
             for (int i = 0; i < dim_out; i++) {
                 optimal[i] = permutation[i];
             }
-            currentOutputLength = distance(permutation);
+            currentOutputLength = VectorCalc.distance(permutation, adjacentMatrix, dim_out);
         }
     }
 
@@ -141,12 +125,16 @@ public class BruteForce {
         }
     }
 
+    public double getLength() {
+        return VectorCalc.distance(optimal, adjacentMatrix, dim_out);
+    }
+
     public void printOutput() {
-        System.out.print("\nCalculated Order: ");
+        System.out.print("\nBrute Force calculated order: ");
         for (int i = 0; i < dim_out; i++) {
             System.out.print(optimal[i] + "  ");
         }
-        System.out.println("\n");
+        System.out.println("Total Length: " + getLength() + "\n");
     }
 
 
