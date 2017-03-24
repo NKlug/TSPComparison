@@ -18,8 +18,6 @@ public class main {
         ArrayList<double[]> list;
         double[][] adjacentMatrix;
 
-        do {
-
             list = new ArrayList<>();
             double temp[];
             for (int i = 0; i < 8; i++) {
@@ -54,21 +52,24 @@ public class main {
 
             frame = new SimpleOutputFrame(net);
 
-            net.start();
-            net.printOutput();
+//            net.start();
+//            net.printOutput();
 
             bruteForce.startCasual();
             bruteForce.printOutput();
-        } while ( !((int) (net.getLength()) < (int) (bruteForce.getLength())));
 
-        frame.show();*/
+            bruteForce.reset();
+            bruteForce.startOptimized();
+            bruteForce.printOutput();
+
+//        frame.show();
 
 //        for (int i = 0; i < adjacentMatrix.length; i++) {
 //            for (int j = 0; j < adjacentMatrix.length; j++) {
 //                System.out.print(adjacentMatrix[i][j] + "\t");
 //            }
 //            System.out.println();
-//        }
+//        }*/
 
         new Comparison();
 

@@ -16,36 +16,31 @@ public class BruteForce {
 
     private int[] optimal;
     private int[] currentOutput;
-    private double currentOutputLength;
+    private double optimumLength;
     private double[][] adjacentMatrix;
 
     public BruteForce(int dim_in, ArrayList<double[]> inputVectors, int dim_out, double[][] adjacentMatrix) {
         this.inputVectors = inputVectors;
         this.dim_in = dim_in;
         this.dim_out = dim_out;
-        currentOutputLength = Double.MAX_VALUE;
         this.adjacentMatrix = adjacentMatrix;
 
-        adjacentMatrix = new double[dim_out][dim_out];
-
-        reInitArrays();
-        initializeOutput();
+        reset();
     }
 
-    public void reInitArrays() {
+    public void reset() {
         optimal = new int[dim_out];
         currentOutput = new int[dim_out];
-        currentOutputLength = Double.MAX_VALUE;
+        optimumLength = Double.MAX_VALUE;
+        initializeOutput();
     }
 
     public void startCasual() {
         permutation(0);
-//        printOutput();
     }
 
     public void startOptimized() {
         permutationOptimized(0);
-        printOutput();
     }
 
     private void initializeOutput() {
@@ -55,11 +50,11 @@ public class BruteForce {
     }
 
     public void isOptimal(int[] permutation) {
-        if (VectorCalc.distance(permutation, adjacentMatrix, dim_out) < currentOutputLength) {
+        if (VectorCalc.distance(permutation, adjacentMatrix, dim_out) < optimumLength) {
             for (int i = 0; i < dim_out; i++) {
                 optimal[i] = permutation[i];
             }
-            currentOutputLength = VectorCalc.distance(permutation, adjacentMatrix, dim_out);
+            optimumLength = VectorCalc.distance(permutation, adjacentMatrix, dim_out);
         }
     }
 
@@ -115,7 +110,7 @@ public class BruteForce {
             isOptimal(currentOutput);
         } else {
             for (int i = 0; i < dim_out - level; i++) {
-                if (minDistance() < currentOutputLength) {
+                if (minDistance() < optimumLength) {
                     currentPosition = getFirstEmptyPosition(currentOutput, ++currentPosition);
                     currentOutput[currentPosition] = level;
                     permutation(level + 1);
